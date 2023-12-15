@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 import org.springframework.transaction.annotation.EnableTransactionManagement
 
 @Configuration
-@EntityScan(basePackages = ["com.spacework.domain"])
+@EntityScan(basePackages = ["com.spacewalk.domain"])
 @EnableJpaRepositories(basePackages = ["com.spacewalk.domain"])
 @EnableTransactionManagement
 @EnableJpaAuditing

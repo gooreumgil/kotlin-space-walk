@@ -3,9 +3,11 @@ package com.spacewalk.domain.account.service
 import com.spacewalk.domain.account.Account
 import com.spacewalk.domain.account.dto.AccountSaveReqDto
 import com.spacewalk.domain.account.repository.AccountRepository
+import com.spacewalk.domain.aop.WrapInMono
 import lombok.RequiredArgsConstructor
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import reactor.core.publisher.Mono
 import java.util.*
 
 @Service
@@ -16,7 +18,7 @@ class AccountService(
 
     @Transactional
     fun createAccount(dto: AccountSaveReqDto): Account {
-        return accountRepository.save(Account.create(dto));
+        return accountRepository.save(Account.create(dto))
     }
 
     fun findById(id: Long): Optional<Account> {
