@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:test
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create
+    generate-ddl: true
+    show-sql: true
+
+security:
+  jwt:
+    token:
+      secret-key: rkGU45258GGhiolLO2465TFY5345kGU45258GGhiolLO2465TFY5345
+      expire-length: 3600000
