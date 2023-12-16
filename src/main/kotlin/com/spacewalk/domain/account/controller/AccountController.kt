@@ -13,24 +13,31 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
+import java.time.Duration
+import java.util.NoSuchElementException
 import java.util.Optional
 
 @RestController
-@RequestMapping("/accounts")
+@RequestMapping("/api/accounts")
 class AccountController(private val accountService: AccountService) {
 
     @PostMapping
-    fun create(@RequestBody dto: AccountSaveReqDto): ResponseEntity<AccountResDto> {
-
+    fun create(@RequestBody dto: AccountSaveReqDto): ResponseEntity<AccountResDto>? {
         val account = accountService.createAccount(dto)
         return ResponseEntity.ok(AccountResDto.fromAccount(account))
-
     }
 
     @GetMapping("/{id}")
-    fun getById(@PathVariable id: Long): Mono<AccountResDto>? {
-        val wrapInMono = ReactiveFacade.wrapInMono { accountService.findById(id) }.flux()
-        return ReactiveFacade.wrapInMono { accountService.findById(id) }.map { account -> AccountResDto.fromAccount(account.get()) }
+    fun getById(@PathVariable id: Long): Mono<AccountResDto> {
+
+        return ReactiveFacade.wrapInMono { accountService.findById(id) }
+            .flatMap {accountOptional ->
+                if (accountOptional.isEmpty) {
+                    Mono.error(NoSuchElementException("Account not found for id: $id"))
+                } else {
+                    Mono.just(AccountResDto.fromAccount(accountOptional.get()))
+                }
+            }
 
     }
 

@@ -18,7 +18,7 @@ class AuthService(
 
     fun authenticate(username: String, password: String): Account {
 
-        val accountOptional = accountRepository.findByUsername(username)
+        val accountOptional = accountRepository.findByUsernameJoinedRoleList(username)
         if (accountOptional.isEmpty) {
             throw UsernameNotFoundException("Account not found with username: $username")
         }

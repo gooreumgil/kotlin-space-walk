@@ -1,39 +1,40 @@
 package com.spacewalk.security.jwt
 
 import com.spacewalk.domain.account.Account
+import com.spacewalk.security.AccountContext
+import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
-import io.jsonwebtoken.security.Keys
+import io.jsonwebtoken.SignatureAlgorithm
 import lombok.extern.slf4j.Slf4j
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.http.server.ServerHttpRequest
+import org.springframework.http.server.reactive.ServerHttpRequest
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
+import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
-import org.springframework.security.core.userdetails.UserDetails
-import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.stereotype.Component
 import java.security.Key
 import java.util.*
 import javax.annotation.PostConstruct
+import javax.crypto.spec.SecretKeySpec
+import kotlin.collections.HashSet
 
 @Slf4j
-@Component
-class JwtTokenProvider(
-    private val userDetailsService: ReactiveUserDetailsService,
-    private val passwordEncoder: PasswordEncoder
-) {
+class JwtTokenProvider {
 
     @Value("\${security.jwt.token.secret-key:secret-key}")
-    private lateinit var secretKey: String
+    private lateinit var secretKeyString: String
 
     @Value("\${security.jwt.token.expire-length:3600000}")
     private var validityInMilliseconds: Long = 0
 
-    private var key: Key? = null
+    private var secretKey: Key? = null
 
     @PostConstruct
-    protected fun init() {
-        key = Keys.hmacShaKeyFor(secretKey!!.toByteArray())
+    fun init() {
+        val keyBytes = secretKeyString.toByteArray()
+        secretKey = SecretKeySpec(keyBytes, SignatureAlgorithm.HS256.jcaName)
     }
 
     fun createToken(account: Account): String {
@@ -57,18 +58,34 @@ class JwtTokenProvider(
             .setClaims(claims)
             .setIssuedAt(now)
             .setExpiration(validity)
-            .signWith(key)
+            .signWith(secretKey, SignatureAlgorithm.HS256)
             .compact();
 
     }
 
-    fun getAuthentication(token: String): Authentication {
-        val userdetails: UserDetails = this.userDetailsService.findByUsername(getUsername(token)).block()!!
-        return UsernamePasswordAuthenticationToken(userdetails, null, userdetails.authorities)
+    fun getAuthentication(token: String): Authentication? {
+        val claims = getClaims(token)
+        if (claims == null) {
+            return null
+        }
+
+        val id = (claims["id"] as? Number)?.toLong()
+        val username = claims.subject
+        val age = (claims["age"] as? Number)?.toInt()
+
+
+        val roles: MutableSet<GrantedAuthority> = HashSet()
+        val rolesList = claims["roles"] as? List<*> ?: listOf<Any>()
+        val roleSet = rolesList.toSet()
+        roleSet.map { role ->
+            roles.add(SimpleGrantedAuthority(role.toString()))
+        }
+
+        return UsernamePasswordAuthenticationToken(AccountContext(id = id!!, username = username, age = age!!), null, roles)
     }
 
-    fun getUsername(token: String): String {
-        return Jwts.parserBuilder().build().parseClaimsJwt(secretKey).body.subject;
+    private fun getUsername(token: String): String {
+        return Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).body.subject;
     }
 
     fun resolveToken(req: ServerHttpRequest): String? {
@@ -80,14 +97,17 @@ class JwtTokenProvider(
     }
 
     fun validateToken(token: String): Boolean {
+        val claims = getClaims(token)
+        return !getClaims(token).expiration.before(Date())
 
-        try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJwt(secretKey)
-            return true
-        } catch (e: Exception) {
-        }
+    }
 
-        return false
+    private fun getClaims(token: String): Claims {
+        return Jwts.parserBuilder()
+            .setSigningKey(secretKey)
+            .build()
+            .parseClaimsJws(token)
+            .body
     }
 
 }

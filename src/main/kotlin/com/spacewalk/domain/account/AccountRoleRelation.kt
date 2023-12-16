@@ -18,15 +18,12 @@ open class AccountRoleRelation(
     open var role: Role? = null
 
 ) {
-
-    @JvmName("setRole1")
-    fun setRole(role: Role) {
+    fun updateRole(role: Role) {
         this.role = role
         role.addAccount(this)
     }
 
-    @JvmName("setAccount1")
-    fun setAccount(account: Account) {
+    fun updateAccount(account: Account) {
         this.account = account
         account.addRole(this)
     }
