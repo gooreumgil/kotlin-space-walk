@@ -1,5 +1,6 @@
-package com.spacewalk.domain.account
+package com.spacewalk.domain.user
 
+import com.spacewalk.audit.AuditingDomain
 import javax.persistence.CascadeType
 import javax.persistence.Entity
 import javax.persistence.GeneratedValue
@@ -16,9 +17,9 @@ class Role (
     val roleName: String,
 
     @OneToMany(mappedBy = "role", cascade = [CascadeType.ALL])
-    val accountList: MutableList<AccountRoleRelation> = mutableListOf()
+    val userList: MutableList<UserRoleRelation> = mutableListOf()
 
-) {
+) : AuditingDomain() {
 
     companion object {
         fun create(roleName: String): Role {
@@ -26,7 +27,7 @@ class Role (
         }
     }
 
-    fun addAccount(accountRoleRelation: AccountRoleRelation) {
-        accountList.add(accountRoleRelation)
+    fun addUser(userRoleRelation: UserRoleRelation) {
+        userList.add(userRoleRelation)
     }
 }

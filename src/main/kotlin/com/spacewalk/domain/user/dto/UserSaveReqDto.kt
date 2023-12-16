@@ -1,6 +1,6 @@
-package com.spacewalk.domain.account.dto
+package com.spacewalk.domain.user.dto
 
-data class AccountSaveReqDto (
+data class UserSaveReqDto (
 
     val username: String,
     val password: String,

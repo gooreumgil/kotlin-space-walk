@@ -1,19 +1,17 @@
 package com.spacewalk.security.jwt
 
-import com.spacewalk.domain.account.Account
-import com.spacewalk.security.AccountContext
+import com.spacewalk.domain.user.User
+import com.spacewalk.security.UserContext
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import lombok.extern.slf4j.Slf4j
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.server.reactive.ServerHttpRequest
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.core.userdetails.ReactiveUserDetailsService
 import java.security.Key
 import java.util.*
 import javax.annotation.PostConstruct
@@ -37,19 +35,19 @@ class JwtTokenProvider {
         secretKey = SecretKeySpec(keyBytes, SignatureAlgorithm.HS256.jcaName)
     }
 
-    fun createToken(account: Account): String {
+    fun createToken(user: User): String {
 
-        val claims = Jwts.claims().setSubject(account.username)
+        val claims = Jwts.claims().setSubject(user.username)
 
-        val roleList = account.roleList
+        val roleList = user.roleList
 
         val userRoles = roleList
             .map { it.role!!.roleName }
             .toSet()
 
         claims["roles"] = userRoles
-        claims["id"] = account.id
-        claims["age"] = account.age
+        claims["id"] = user.id
+        claims["age"] = user.age
 
         val now = Date();
         val validity = Date(now.time + validityInMilliseconds)
@@ -81,7 +79,7 @@ class JwtTokenProvider {
             roles.add(SimpleGrantedAuthority(role.toString()))
         }
 
-        return UsernamePasswordAuthenticationToken(AccountContext(id = id!!, username = username, age = age!!), null, roles)
+        return UsernamePasswordAuthenticationToken(UserContext(id = id!!, username = username, age = age!!), null, roles)
     }
 
     private fun getUsername(token: String): String {
@@ -97,7 +95,6 @@ class JwtTokenProvider {
     }
 
     fun validateToken(token: String): Boolean {
-        val claims = getClaims(token)
         return !getClaims(token).expiration.before(Date())
 
     }

@@ -1,31 +1,20 @@
 package com.spacewalk.init
 
-import com.spacewalk.domain.account.Account
-import com.spacewalk.domain.account.AccountRoleRelation
-import com.spacewalk.domain.account.Role
-import com.spacewalk.domain.account.dto.AccountResDto
-import com.spacewalk.domain.account.dto.AccountSaveReqDto
-import com.spacewalk.domain.account.repository.AccountRepository
-import com.spacewalk.domain.account.repository.RoleRepository
+import com.spacewalk.domain.user.User
+import com.spacewalk.domain.user.UserRoleRelation
+import com.spacewalk.domain.user.Role
+import com.spacewalk.domain.user.dto.UserSaveReqDto
+import com.spacewalk.domain.user.repository.UserRepository
+import com.spacewalk.domain.user.repository.RoleRepository
 import org.springframework.boot.context.event.ApplicationReadyEvent
-import org.springframework.boot.context.event.ApplicationStartedEvent
-import org.springframework.boot.web.client.RestTemplateBuilder
-import org.springframework.context.annotation.Bean
 import org.springframework.context.event.EventListener
-import org.springframework.http.ResponseEntity
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.client.RestTemplate
-import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.util.UriComponentsBuilder
-import reactor.core.publisher.Mono
-import java.time.LocalTime
-import java.util.function.Consumer
 
 @Component
 class ApplicationInitializer(
-    private val accountRepository: AccountRepository,
+    private val userRepository: UserRepository,
     private val roleRepository: RoleRepository,
     private val passwordEncoder: PasswordEncoder
 ) {
@@ -34,27 +23,26 @@ class ApplicationInitializer(
     @EventListener(ApplicationReadyEvent::class)
     fun init() {
 
-        val accountRole = roleRepository.save(Role.create("ROLE_ACCOUNT"))
-        val accountManager = roleRepository.save(Role.create("ROLE_MANAGER"))
-        val accountAdmin = roleRepository.save(Role.create("ROLE_ADMIN"))
+        val userRole = roleRepository.save(Role.create("ROLE_USER"))
+        val userManager = roleRepository.save(Role.create("ROLE_MANAGER"))
+        val userAdmin = roleRepository.save(Role.create("ROLE_ADMIN"))
 
-        val account1 = accountRepository.save(Account.create(AccountSaveReqDto("account", passwordEncoder.encode("pass"), 20)))
-        val account2 = accountRepository.save(Account.create(AccountSaveReqDto("manager", passwordEncoder.encode("pass"), 30)))
-        val account3 = accountRepository.save(Account.create(AccountSaveReqDto("admin", passwordEncoder.encode("pass"), 40)))
+        val user1 = userRepository.save(User.create(UserSaveReqDto("user", passwordEncoder.encode("pass"), 20)))
+        val user2 = userRepository.save(User.create(UserSaveReqDto("manager", passwordEncoder.encode("pass"), 30)))
+        val user3 = userRepository.save(User.create(UserSaveReqDto("admin", passwordEncoder.encode("pass"), 40)))
 
 
-        val accountRoleRelation1 = AccountRoleRelation()
-        accountRoleRelation1.updateAccount(account1)
-        accountRoleRelation1.updateRole(accountRole)
+        val userRoleRelation1 = UserRoleRelation()
+        userRoleRelation1.updateUser(user1)
+        userRoleRelation1.updateRole(userRole)
 
-        val accountRoleRelation2 = AccountRoleRelation()
-        accountRoleRelation2.updateAccount(account2)
-        accountRoleRelation2.updateRole(accountManager)
+        val userRoleRelation2 = UserRoleRelation()
+        userRoleRelation2.updateUser(user2)
+        userRoleRelation2.updateRole(userManager)
 
-        val accountRoleRelation3 = AccountRoleRelation()
-        accountRoleRelation3.updateAccount(account3)
-        accountRoleRelation3.updateRole(accountAdmin)
-
+        val userRoleRelation3 = UserRoleRelation()
+        userRoleRelation3.updateUser(user3)
+        userRoleRelation3.updateRole(userAdmin)
 
     }
 

@@ -19,10 +19,13 @@ class AuthController(
     @PostMapping("/login")
     fun login(@RequestBody dto: AuthReqDto): ResponseEntity<String> {
 
-        val account = authService.authenticate(dto.username, dto.password)
-        val authToken = jwtTokenProvider.createToken(account)
-
-        return ResponseEntity.ok(authToken)
+        return authService.authenticate(dto.username, dto.password)
+            .let { user ->
+                jwtTokenProvider.createToken(user)
+            }
+            .let { authToken ->
+                ResponseEntity.ok(authToken)
+            }
 
     }
 

@@ -1,6 +1,6 @@
-package com.spacewalk.domain.account.repository
+package com.spacewalk.domain.user.repository
 
-import com.spacewalk.domain.account.Role
+import com.spacewalk.domain.user.Role
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface RoleRepository : JpaRepository<Role, Long> {
