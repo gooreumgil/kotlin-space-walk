@@ -22,9 +22,6 @@ class Article (
     @JoinColumn(name = "user_id")
     var user: User? = null,
 
-    @OneToMany(mappedBy = "article", cascade = [CascadeType.PERSIST, CascadeType.MERGE])
-    val articleLikeList : MutableList<ArticleLike> = mutableListOf()
-
 ) : AuditingDomain() {
 
     companion object {

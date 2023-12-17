@@ -28,9 +28,6 @@ class AuthenticatedUserController(
         return ReactiveFacade.wrapInMono { userService.findById(userContext.id) }
     }
 
-    @PatchMapping
-
-
     @PostMapping("/articles")
     fun writeArticle(
         @AuthenticationPrincipal userContext: UserContext,
@@ -61,7 +58,6 @@ class AuthenticatedUserController(
 
     @DeleteMapping("/articles/{articleId}")
     fun removeArticle(@AuthenticationPrincipal userContext: UserContext, @PathVariable articleId: Long) {
-
         userService.deleteArticle(userContext.id, articleId)
 
     }

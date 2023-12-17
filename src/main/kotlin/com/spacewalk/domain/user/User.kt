@@ -22,7 +22,7 @@ class User (
     @Column(nullable = false)
     var password: String,
 
-    val age: Int,
+    var age: Int,
 
     @Column(name = "is_deleted")
     var deleted: Boolean = false,

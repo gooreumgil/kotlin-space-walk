@@ -25,6 +25,8 @@ class SecurityConfig {
             .formLogin().disable()
             .authorizeExchange()
             .pathMatchers("/api/auth/login").permitAll()
+            .pathMatchers(HttpMethod.GET, "/api/articles").permitAll()
+            .pathMatchers(HttpMethod.GET, "/api/articles/{articleId}").permitAll()
             .pathMatchers(HttpMethod.POST, "/api/users").permitAll()
             .pathMatchers("/api/authenticated/manager/**").hasRole("MANAGER")
             .pathMatchers("/api/authenticated/admin/**").hasRole("ADMIN")
