@@ -24,6 +24,7 @@ Reactor 프로그래밍 모델 설계상 전체 로직이 non-blocking 이어야
 그러나 DB단까지 적용하기는 무리여서 @Service 로직을 ReactiveFacade를 만들어서 감싸는 방식으로 해결을 하였다.
 
 ![img.png](docs/img.png)
+
 ![img_1.png](docs/img_1.png)
 
 ***
@@ -51,9 +52,11 @@ context가 유지가 됐었는데 webFlux방식에서는 동작하지 않았다.
 
 이 또한 Chatgpt한테 물어보니 Reactor 프로그래밍 모델에서는 context가 전파되지 않는 경우가 있다고 하였다.
 
+그래서 context를 전파할 수 있는 방법을 물었고 그에 대한 해답을 준 덕분에 해결할 수 있었다.
+
 contextWrite() 부분이 전파하는 부분이다.
 
-그래서 context를 전파할 수 있는 방법을 물었고 그에 대한 해답을 준 덕분에 해결할 수 있었다.
+
 ![img_5.png](docs/img_5.png)
 <br><br>
 
@@ -79,11 +82,27 @@ USER_ROLE에 맞추어서 AuthenticatedUserController, AuthenticatedManagerContr
 
 **예외 처리**
 
-예외처리를 적절하게 하여 api에서 해당 예외에 맞는 응답을 줄 수 있도록 advice controller를 활용하였다.<br><br>
+예외처리를 적절하게 하여 api에서 해당 예외에 맞는 응답을 줄 수 있도록 adviceController를 활용하였다.
+
+adviceController에서 BindingError를 처리하다가 고생을 하였는데 webFlux에서는 WebExchangeBindException 객체로
+
+bindingError를 처리한다는 것을 알게 되었다.
+<br><br>
 
 **데이터**
 
-java진영의 ORM인 jpa, DB는 PostgreSql을 Docker에 띄워놓고 사용하였다. <br><br>
+java진영의 ORM인 jpa, DB는 PostgreSql을 Docker에 띄워놓고 사용하였다. 
+
+DB가 떠있지 않은 상황에서도 테스트를 할 수 있게 h2 의존성도 추가를 해놓았고
+
+application.yml에 메모리 방식의 h2 설정을 메모리 주석을 달아놓았다.
+
+물론 @Configuration 으로 h2와 Postgresql 설정을 나누어 놓고 @Import를 사용해야 하지만
+
+시간관계상 구현하지 못하였다 ㅠㅠ 그래서 무식한 방법으로...
+
+![img_6.png](docs%2Fimg_6.png)
+<br><br>
 
 ## 🏛️ Structure
 
