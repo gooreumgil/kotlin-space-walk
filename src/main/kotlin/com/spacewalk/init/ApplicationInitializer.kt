@@ -1,5 +1,7 @@
 package com.spacewalk.init
 
+import com.spacewalk.domain.article.Article
+import com.spacewalk.domain.article.dto.ArticleSaveReqDto
 import com.spacewalk.domain.user.User
 import com.spacewalk.domain.user.UserRoleRelation
 import com.spacewalk.domain.user.UserRole
@@ -69,6 +71,13 @@ class ApplicationInitializer(
         val userRoleRelation3 = UserRoleRelation()
         userRoleRelation3.updateUser(user3)
         userRoleRelation3.updateUserRole(userAdmin)
+
+        user1.addArticle(Article.create(ArticleSaveReqDto("게시글 제목1입니다.", "게시글 내용1입니다. 게시글 내용1입니다. 게시글 내용1입니다.")))
+        user1.addArticle(Article.create(ArticleSaveReqDto("게시글 제목2입니다.", "게시글 내용2입니다. 게시글 내용2입니다. 게시글 내용2입니다.")))
+        user2.addArticle(Article.create(ArticleSaveReqDto("게시글 제목3입니다.", "게시글 내용3입니다. 게시글 내용3입니다. 게시글 내용3입니다.")))
+        user2.addArticle(Article.create(ArticleSaveReqDto("게시글 제목4입니다.", "게시글 내용4입니다. 게시글 내용4입니다. 게시글 내용4입니다.")))
+        user3.addArticle(Article.create(ArticleSaveReqDto("게시글 제목5입니다.", "게시글 내용5입니다. 게시글 내용4입니다. 게시글 내용5입니다.")))
+        user3.addArticle(Article.create(ArticleSaveReqDto("게시글 제목6입니다.", "게시글 내용6입니다. 게시글 내용6입니다. 게시글 내용6입니다.")))
 
     }
 

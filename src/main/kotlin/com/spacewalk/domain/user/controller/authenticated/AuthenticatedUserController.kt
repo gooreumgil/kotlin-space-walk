@@ -4,6 +4,7 @@ import com.spacewalk.common.PageDto
 import com.spacewalk.domain.article.dto.ArticleResDto
 import com.spacewalk.domain.article.dto.ArticleSaveReqDto
 import com.spacewalk.domain.article.dto.ArticleUpdateReqDto
+import com.spacewalk.domain.user.dto.UserResDto
 import com.spacewalk.domain.user.service.UserService
 import com.spacewalk.facade.ReactiveFacade
 import com.spacewalk.security.UserContext
@@ -14,10 +15,21 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono
 
+/*
+* 인증받은 사용자(ROLE_USER)를 위한 api
+* */
 @RestController
 @RequestMapping("/api/authenticated/user")
 class AuthenticatedUserController(
     private val userService: UserService) {
+
+    @GetMapping
+    fun getById(@AuthenticationPrincipal userContext: UserContext): Mono<UserResDto> {
+        return ReactiveFacade.wrapInMono { userService.findById(userContext.id) }
+    }
+
+    @PatchMapping
+
 
     @PostMapping("/articles")
     fun writeArticle(
@@ -31,7 +43,7 @@ class AuthenticatedUserController(
     @GetMapping("/articles")
     fun getUserArticlesPage(
         @AuthenticationPrincipal userContext: UserContext,
-        @PageableDefault(sort = ["createdAt"], direction = Sort.Direction.DESC) pageable: Pageable): Mono<PageDto.ListResponse<Unit>> {
+        @PageableDefault(sort = ["createdAt"], direction = Sort.Direction.DESC) pageable: Pageable): Mono<PageDto.ListResponse<ArticleResDto>> {
 
         return ReactiveFacade.wrapInMono { userService.findArticlesPage(userContext.id, pageable) }
 

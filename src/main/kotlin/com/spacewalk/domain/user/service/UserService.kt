@@ -1,6 +1,6 @@
 package com.spacewalk.domain.user.service
 
-import com.spacewalk.common.GlobalExceptionHelper
+import com.spacewalk.exception.GlobalExceptionHelper
 import com.spacewalk.common.PageDto
 import com.spacewalk.domain.article.Article
 import com.spacewalk.domain.article.dto.ArticleResDto
@@ -15,6 +15,7 @@ import com.spacewalk.domain.user.repository.UserRepository
 import com.spacewalk.domain.user.repository.UserRoleRepository
 import com.spacewalk.exception.HttpException
 import com.spacewalk.exception.HttpExceptionCode
+import com.spacewalk.security.UserContext
 import com.spacewalk.utils.AES256Util
 import lombok.RequiredArgsConstructor
 import org.springframework.data.domain.Pageable
@@ -80,12 +81,14 @@ class UserService(
 
     }
 
-    fun findArticlesPage(userId: Long, pageable: Pageable): PageDto.ListResponse<Unit> {
+    fun findArticlesPage(userId: Long, pageable: Pageable): PageDto.ListResponse<ArticleResDto> {
 
         val articlePage = articleRepository.findAllByUserIdAndDeletedIsFalse(userId, pageable)
         val dtoList = articlePage.map { article ->
-            ArticleResDto(id = article.id!!, title = article.title, content = article.content)
-                .updateUser(article.user!!)
+            val articleResDto = ArticleResDto.fromArticle(article)
+            articleResDto.updateUser(article.user!!)
+            articleResDto
+
         }.toList()
 
         return PageDto.ListResponse(articlePage, dtoList)
@@ -99,10 +102,6 @@ class UserService(
             GlobalExceptionHelper.createNotFoundException("Article", articleId)
         }
 
-        if (article.user!!.id != userId) {
-            throw HttpException(HttpStatus.BAD_REQUEST, HttpExceptionCode.NOT_OWNED, "직접 작성한 글만 변경할 수 있습니다.")
-        }
-
         article.update(dto)
 
     }
@@ -113,10 +112,6 @@ class UserService(
 
         val article = articleRepository.findByIdAndUserIdAndDeletedIsFalse(userId, articleId).orElseThrow {
             GlobalExceptionHelper.createNotFoundException("Article", articleId)
-        }
-
-        if (article.user!!.id != userId) {
-            throw HttpException(HttpStatus.BAD_REQUEST, HttpExceptionCode.NOT_OWNED, "직접 작성한 글만 변경할 수 있습니다.")
         }
 
         article.delete()

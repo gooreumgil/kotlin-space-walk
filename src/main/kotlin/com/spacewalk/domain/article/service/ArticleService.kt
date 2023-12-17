@@ -1,6 +1,6 @@
 package com.spacewalk.domain.article.service
 
-import com.spacewalk.common.GlobalExceptionHelper
+import com.spacewalk.exception.GlobalExceptionHelper
 import com.spacewalk.common.PageDto
 import com.spacewalk.domain.article.Article
 import com.spacewalk.domain.article.dto.ArticleResDto
@@ -29,10 +29,12 @@ class ArticleService(
 
     }
 
-    fun findAllWithUser(pageable: Pageable): PageDto.ListResponse<Unit> {
+    fun findAllWithUser(pageable: Pageable): PageDto.ListResponse<ArticleResDto> {
         val articlePage = articleRepository.findAllJoinedUser(pageable)
         val dtoList = articlePage.map { article ->
-            ArticleResDto.fromArticle(article).updateUser(article.user!!)
+            val articleResDto = ArticleResDto.fromArticle(article)
+            articleResDto.updateUser(article.user!!)
+            articleResDto
         }.toList()
 
         return PageDto.ListResponse(articlePage, dtoList)
@@ -49,6 +51,16 @@ class ArticleService(
         articleResDto.updateUser(article.user!!)
 
         return articleResDto
+
+    }
+
+    @Transactional
+    fun deleteById(articleId: Long) {
+
+        val article = articleRepository.findById(articleId).orElseThrow {
+            GlobalExceptionHelper.createNotFoundException("Article", articleId)
+        }
+        article.delete()
 
     }
 

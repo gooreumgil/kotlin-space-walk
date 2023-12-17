@@ -28,7 +28,7 @@ class ArticleController(
     }
 
     @GetMapping
-    fun getAll(@PageableDefault(sort = ["createdAt"], direction = Sort.Direction.DESC) pageable: Pageable): Mono<PageDto.ListResponse<Unit>> {
+    fun getAll(@PageableDefault(sort = ["createdAt"], direction = Sort.Direction.DESC) pageable: Pageable): Mono<PageDto.ListResponse<ArticleResDto>> {
         return ReactiveFacade.wrapInMono { articleService.findAllWithUser(pageable) }
     }
 

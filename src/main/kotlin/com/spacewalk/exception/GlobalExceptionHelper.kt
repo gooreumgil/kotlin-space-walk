@@ -1,4 +1,4 @@
-package com.spacewalk.common
+package com.spacewalk.exception
 
 import com.spacewalk.exception.HttpException
 import com.spacewalk.exception.HttpExceptionCode
@@ -12,7 +12,7 @@ class GlobalExceptionHelper {
             return HttpException(
                 status = HttpStatus.BAD_REQUEST,
                 HttpExceptionCode.NOT_FOUND,
-                message = "존재하지 않는 $entityName 입니다. ${entityName}Id = $entityId"
+                message = "존재하지 않거나 삭제된 $entityName 입니다. ${entityName}Id = $entityId"
             )
         }
     }
