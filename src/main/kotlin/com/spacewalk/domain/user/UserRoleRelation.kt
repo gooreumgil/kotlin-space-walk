@@ -15,13 +15,13 @@ open class UserRoleRelation(
     open var user: User? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "role_id")
-    open var role: Role? = null
+    @JoinColumn(name = "user_role_id")
+    open var userRole: UserRole? = null
 
 ) : AuditingDomain() {
-    fun updateRole(role: Role) {
-        this.role = role
-        role.addUser(this)
+    fun updateUserRole(userRole: UserRole) {
+        this.userRole = userRole
+        userRole.addUser(this)
     }
 
     fun updateUser(user: User) {

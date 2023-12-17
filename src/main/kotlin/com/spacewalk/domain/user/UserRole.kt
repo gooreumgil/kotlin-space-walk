@@ -9,21 +9,21 @@ import javax.persistence.Id
 import javax.persistence.OneToMany
 
 @Entity
-class Role (
+class UserRole (
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
     val roleName: String,
 
-    @OneToMany(mappedBy = "role", cascade = [CascadeType.ALL])
+    @OneToMany(mappedBy = "userRole", cascade = [CascadeType.ALL])
     val userList: MutableList<UserRoleRelation> = mutableListOf()
 
 ) : AuditingDomain() {
 
     companion object {
-        fun create(roleName: String): Role {
-            return Role(roleName = roleName)
+        fun create(roleName: String): UserRole {
+            return UserRole(roleName = roleName)
         }
     }
 

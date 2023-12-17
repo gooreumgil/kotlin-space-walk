@@ -1,13 +1,25 @@
 package com.spacewalk.domain.user.service
 
+import com.spacewalk.common.GlobalExceptionHelper
+import com.spacewalk.common.PageDto
+import com.spacewalk.domain.article.Article
+import com.spacewalk.domain.article.dto.ArticleResDto
+import com.spacewalk.domain.article.dto.ArticleSaveReqDto
+import com.spacewalk.domain.article.dto.ArticleUpdateReqDto
+import com.spacewalk.domain.article.repository.ArticleRepository
 import com.spacewalk.domain.user.User
+import com.spacewalk.domain.user.UserRoleRelation
 import com.spacewalk.domain.user.dto.UserResDto
 import com.spacewalk.domain.user.dto.UserSaveReqDto
 import com.spacewalk.domain.user.repository.UserRepository
+import com.spacewalk.domain.user.repository.UserRoleRepository
 import com.spacewalk.exception.HttpException
 import com.spacewalk.exception.HttpExceptionCode
+import com.spacewalk.utils.AES256Util
 import lombok.RequiredArgsConstructor
+import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -16,28 +28,100 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional(readOnly = true)
 class UserService(
     private val userRepository: UserRepository,
+    private val userRoleRepository: UserRoleRepository,
+    private val articleRepository: ArticleRepository,
+    private val passwordEncoder: PasswordEncoder
 ) {
 
     @Transactional
-    fun createUser(dto: UserSaveReqDto): UserResDto {
-        return userRepository.save(User.create(dto))
+    fun saveUser(dto: UserSaveReqDto): UserResDto {
+
+        dto.password = passwordEncoder.encode(dto.password)
+        dto.email = AES256Util.encrypt(dto.email)
+
+        val user = User.create(dto)
+        val userRole = userRoleRepository.findByRoleName("ROLE_USER").get()
+
+        val userRoleRelation = UserRoleRelation()
+        userRoleRelation.updateUser(user)
+        userRoleRelation.updateUserRole(userRole)
+
+        return userRepository.save(user)
+            .let { savedUser ->
+                UserResDto.fromUser(user = savedUser)
+            }
+    }
+
+    fun findById(userId: Long): UserResDto {
+        return userRepository.findByIdJoinedRoleList(userId)
+            .orElseThrow {
+                GlobalExceptionHelper.createNotFoundException("User", userId)
+            }
             .let { user ->
                 UserResDto.fromUser(user = user)
             }
     }
 
-    fun findById(id: Long): UserResDto {
-        return userRepository.findByIdJoinedRoleList(id)
-            .orElseThrow {
-                HttpException(
-                    status = HttpStatus.BAD_REQUEST,
-                    HttpExceptionCode.NOT_FOUND,
-                    message = "존재하지 않는 User 입니다. id = $id"
-                )
-            }
-            .let { user ->
-                UserResDto.fromUser(user = user)
-            }
+
+
+    @Transactional
+    fun addArticle(userId: Long, dto: ArticleSaveReqDto) : ArticleResDto {
+
+        val user = userRepository.findById(userId).orElseThrow { GlobalExceptionHelper.createNotFoundException("User", userId) }
+        val article = Article.create(dto)
+        user.addArticle(article)
+
+        articleRepository.save(article)
+
+        val articleResDto = ArticleResDto.fromArticle(article)
+        articleResDto.updateUser(user)
+
+        return articleResDto
+
     }
+
+    fun findArticlesPage(userId: Long, pageable: Pageable): PageDto.ListResponse<Unit> {
+
+        val articlePage = articleRepository.findAllByUserIdAndDeletedIsFalse(userId, pageable)
+        val dtoList = articlePage.map { article ->
+            ArticleResDto(id = article.id!!, title = article.title, content = article.content)
+                .updateUser(article.user!!)
+        }.toList()
+
+        return PageDto.ListResponse(articlePage, dtoList)
+
+    }
+
+    @Transactional
+    fun modifyArticle(userId: Long, articleId: Long, dto: ArticleUpdateReqDto) {
+
+        val article = articleRepository.findByIdAndUserIdAndDeletedIsFalse(articleId, userId).orElseThrow {
+            GlobalExceptionHelper.createNotFoundException("Article", articleId)
+        }
+
+        if (article.user!!.id != userId) {
+            throw HttpException(HttpStatus.BAD_REQUEST, HttpExceptionCode.NOT_OWNED, "직접 작성한 글만 변경할 수 있습니다.")
+        }
+
+        article.update(dto)
+
+    }
+
+
+    @Transactional
+    fun deleteArticle(userId: Long, articleId: Long) {
+
+        val article = articleRepository.findByIdAndUserIdAndDeletedIsFalse(userId, articleId).orElseThrow {
+            GlobalExceptionHelper.createNotFoundException("Article", articleId)
+        }
+
+        if (article.user!!.id != userId) {
+            throw HttpException(HttpStatus.BAD_REQUEST, HttpExceptionCode.NOT_OWNED, "직접 작성한 글만 변경할 수 있습니다.")
+        }
+
+        article.delete()
+
+    }
+
 
 }

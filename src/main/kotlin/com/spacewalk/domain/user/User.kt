@@ -3,7 +3,6 @@ package com.spacewalk.domain.user
 import com.spacewalk.audit.AuditingDomain
 import com.spacewalk.domain.user.dto.UserSaveReqDto
 import com.spacewalk.domain.article.Article
-import com.spacewalk.domain.order.Order
 import javax.persistence.*
 
 @Entity
@@ -18,12 +17,15 @@ class User (
     val username: String,
 
     @Column(nullable = false)
-    val password: String,
+    val email: String,
+
+    @Column(nullable = false)
+    var password: String,
 
     val age: Int,
 
-    @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL])
-    val orderList: MutableList<Order> = mutableListOf(),
+    @Column(name = "is_deleted")
+    var deleted: Boolean = false,
 
     @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL])
     val articleList: MutableList<Article> = mutableListOf(),
@@ -35,13 +37,19 @@ class User (
 
     companion object {
         fun create(dto: UserSaveReqDto): User {
-            return User(username = dto.username, password = dto.password, age = dto.age);
+            return User(username = dto.username, age = dto.age, email = dto.email, password = dto.password);
         }
     }
 
     fun addRole(userRoleRelation: UserRoleRelation) {
         roleList.add(userRoleRelation)
     }
+
+    fun addArticle(article: Article) {
+        articleList.add(article)
+        article.updateUser(this);
+    }
+
 
 }
 

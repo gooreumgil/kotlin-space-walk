@@ -11,14 +11,15 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
+import javax.validation.Valid
 
 @RestController
 @RequestMapping("/api/users")
 class UserController(private val userService: UserService) {
 
     @PostMapping
-    fun create(@RequestBody dto: UserSaveReqDto): Mono<UserResDto>? {
-        return ReactiveFacade.wrapInMono { userService.createUser(dto) }
+    fun create(@Valid @RequestBody dto: UserSaveReqDto): Mono<UserResDto>? {
+        return ReactiveFacade.wrapInMono { userService.saveUser(dto) }
             .flatMap { userResDto -> Mono.just(userResDto) }
     }
 
@@ -27,5 +28,6 @@ class UserController(private val userService: UserService) {
         return ReactiveFacade.wrapInMono { userService.findById(id) }
             .flatMap { userResDto -> Mono.just(userResDto) }
     }
+
 
 }

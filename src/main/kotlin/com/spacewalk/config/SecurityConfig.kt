@@ -26,9 +26,8 @@ class SecurityConfig {
             .authorizeExchange()
             .pathMatchers("/api/auth/login").permitAll()
             .pathMatchers(HttpMethod.POST, "/api/users").permitAll()
-            .pathMatchers("/api/users/**").hasRole("USER")
-            .pathMatchers("/api/managers/**").hasRole("MANAGER")
-            .pathMatchers("/api/admin/**").hasRole("ADMIN")
+            .pathMatchers("/api/authenticated/manager/**").hasRole("MANAGER")
+            .pathMatchers("/api/authenticated/admin/**").hasRole("ADMIN")
             .pathMatchers("/**").hasRole("USER")
             .anyExchange().authenticated()
             .and().addFilterAt(JwtAuthFilter(jwtTokenProvider()), SecurityWebFiltersOrder.AUTHENTICATION)
@@ -43,7 +42,7 @@ class SecurityConfig {
     @Bean
     fun roleHierarchy() : RoleHierarchy {
         val roleHierarchy = RoleHierarchyImpl()
-        val hierarchy = "ROLE_ADMIN > ROLE_MANAGER\nROLE_MANAGER > ROLE_USER"
+        val hierarchy = "ROLE_ADMIN > ROLE_MANAGER > ROLE_USER"
         roleHierarchy.setHierarchy(hierarchy)
         return roleHierarchy
     }

@@ -9,10 +9,10 @@ interface UserRepository : JpaRepository<User, Long> {
 
     fun findByUsername(username: String) : Optional<User>
 
-    @Query("select us from User us join fetch us.roleList ro join fetch ro.role where us.id = :id")
+    @Query("select us from User us join fetch us.roleList ro join fetch ro.userRole where us.id = :id")
     fun findByIdJoinedRoleList(id: Long) : Optional<User>
 
-    @Query("select us from User us join fetch us.roleList ro join fetch ro.role where us.username = :username")
+    @Query("select us from User us join fetch us.roleList ro join fetch ro.userRole where us.username = :username")
     fun findByUsernameJoinedRoleList(username: String) : Optional<User>
 
 }

@@ -42,7 +42,7 @@ class JwtTokenProvider {
         val roleList = user.roleList
 
         val userRoles = roleList
-            .map { it.role!!.roleName }
+            .map { it.userRole!!.roleName }
             .toSet()
 
         claims["roles"] = userRoles
@@ -79,7 +79,7 @@ class JwtTokenProvider {
             roles.add(SimpleGrantedAuthority(role.toString()))
         }
 
-        return UsernamePasswordAuthenticationToken(UserContext(id = id!!, username = username, age = age!!), null, roles)
+        return UsernamePasswordAuthenticationToken(UserContext(id = id!!, username = username, age = age!!, roles = roleSet), null, roles)
     }
 
     private fun getUsername(token: String): String {
